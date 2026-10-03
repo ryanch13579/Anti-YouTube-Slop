@@ -1,0 +1,21 @@
+Privacy Policy – Hide AI-Labeled Videos
+Last updated: 4 October 2026
+
+Anti-YouTube Slop is a browser extension that hides videos YouTube has labeled as made with AI.
+
+What the extension handles
+- YouTube page content: on youtube.com, the extension reads video links on the page and requests each video's YouTube page to check whether YouTube has labeled it as made with AI.
+- A local cache: the IDs of videos it has checked, whether each one is labeled, and when it was checked.
+- Your settings: whether the filter is on, and whether labeled videos are removed or dimmed.
+
+Where it is stored
+All of this is stored only in your browser, using Chrome's local extension storage. It is never sent to the developer or to any third party. The only network requests the extension makes are to youtube.com.
+
+What is not collected
+The extension does not collect personal information, does not use analytics or advertising, and does not sell or share any data.
+
+Your control
+The Reset button in the extension's popup clears the cache. Removing the extension deletes everything it stored.
+
+Contact
+rych13579@gmail.com
