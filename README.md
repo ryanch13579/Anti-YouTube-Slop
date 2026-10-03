@@ -1,4 +1,3 @@
-
 # Hide AI-Labeled Videos
 
 A Chrome extension that hides YouTube videos labeled **"Made with AI"**.
@@ -8,7 +7,7 @@ watch-page sidebar, channel pages and Shorts shelves. In the Shorts player it
 skips them automatically.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
-![Version](https://img.shields.io/badge/version-1.1.0-green)
+![Version](https://img.shields.io/badge/version-1.1.1-green)
 
 ## Features
 
@@ -70,13 +69,47 @@ remembers the answer.
 
 ## Privacy
 
-- The only network requests go to `youtube.com`. They fetch the video pages
-  that the extension checks.
-- Results are stored only in your browser (`chrome.storage.local`).
-  "Labeled" results are kept for 90 days. "Not labeled" results are checked
-  again after 7 days, because YouTube can add a label later.
-- The only permission requested is `storage`. Content scripts run only on
-  `https://www.youtube.com/*`.
+*Privacy policy, last updated 4 October 2026.*
+
+Hide AI-Labeled Videos is a browser extension that hides videos YouTube has
+labeled as made with AI.
+
+**What the extension handles**
+
+- YouTube page content. On `youtube.com`, the extension reads the video links
+  on the page and fetches each video's YouTube page to check whether YouTube
+  has labeled it as made with AI.
+- A local cache. The IDs of the videos it has checked, whether each one is
+  labeled, and when it was checked. "Labeled" results are kept for 90 days.
+  "Not labeled" results are checked again after 7 days, because YouTube can add
+  a label later.
+- Your settings. Whether the filter is on, and whether labeled videos are
+  removed or dimmed.
+
+**Where it is stored**
+
+All of this is stored only in your browser (`chrome.storage.local`). It is
+never sent to the developer or to any third party. The only network requests
+the extension makes are to `youtube.com`.
+
+**Permissions**
+
+The only permission requested is `storage`. Content scripts run only on
+`https://www.youtube.com/*`.
+
+**What is not collected**
+
+The extension does not collect personal information, does not use analytics or
+advertising, and does not sell or share any data.
+
+**Your control**
+
+The Reset button in the popup clears the cache. Removing the extension deletes
+everything it stored.
+
+**Contact**
+
+Questions about this policy: open an issue on this repository.
 
 ## Limitations
 
@@ -118,7 +151,3 @@ reload the extension in `chrome://extensions` and refresh YouTube to test.
 ## Disclaimer
 
 This project is not affiliated with or endorsed by YouTube or Google.
-=======
-# Anti-YouTube-Slop
-YouTube has started to tag AI - labelled videos and shorts, but they are only on individual pages.  The goal: 1. Allow you to quickly identify AI-tagged videos 2. Allow you to skip AI - tagged videos
->>>>>>> 1a28a232a1466b327e085bc75f630140e3e45c7c
