@@ -1,0 +1,28 @@
+# Packaged builds (upload these to the Chrome Web Store, don't commit them)
+*.zip
+*.crx
+*.pem
+dist/
+build/
+
+# Dependencies, in case tooling is added later
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs and local env
+*.log
+.env
+.env.*
+
+# Claude Code local settings
+.claude/settings.local.json

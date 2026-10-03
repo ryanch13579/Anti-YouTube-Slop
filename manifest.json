@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Hide AI-Labeled Videos",
+  "version": "1.1.0",
+  "description": "Hides videos YouTube has labeled as made with AI from feeds, search and the sidebar, and skips them in the Shorts player.",
+  "permissions": ["storage"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Hide AI-Labeled Videos",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["detect.js", "content.js"],
+      "css": ["content.css"],
+      "run_at": "document_start"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+/* Normal mode: labeled videos are removed from the page. */
+html.aif-hide [data-aif="ai"] {
+  display: none !important;
+}
+
+/* Test mode: labeled videos stay visible but dimmed and tagged, so you can
+   see exactly what the filter would remove. */
+html.aif-dim [data-aif="ai"] {
+  position: relative !important;
+  outline: 2px dashed #e5484d !important;
+  outline-offset: -2px;
+}
+html.aif-dim [data-aif="ai"] > * {
+  opacity: 0.3 !important;
+}
+html.aif-dim [data-aif="ai"]::after {
+  content: "AI-labeled";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #e5484d;
+  color: #fff;
+  font: 600 12px/1.5 Roboto, Arial, sans-serif;
+  pointer-events: none;
+}
+
+/* Notice shown in the Shorts player. */
+#aif-banner {
+  position: fixed;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: #e5484d;
+  color: #fff;
+  font: 600 13px/1.5 Roboto, Arial, sans-serif;
+  pointer-events: none;
+}
