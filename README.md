@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Hide AI-Labeled Videos
 
 A Chrome extension that hides YouTube videos labeled **"Made with AI"**.
@@ -117,3 +118,7 @@ reload the extension in `chrome://extensions` and refresh YouTube to test.
 ## Disclaimer
 
 This project is not affiliated with or endorsed by YouTube or Google.
+=======
+# Anti-YouTube-Slop
+YouTube has started to tag AI - labelled videos and shorts, but they are only on individual pages.  The goal: 1. Allow you to quickly identify AI-tagged videos 2. Allow you to skip AI - tagged videos
+>>>>>>> 1a28a232a1466b327e085bc75f630140e3e45c7c
