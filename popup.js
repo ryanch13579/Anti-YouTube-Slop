@@ -65,7 +65,7 @@ function describeProblem(r) {
   const l = r.lookups;
   if (l.pausedSeconds) return `YouTube is refusing checks (${l.lastError}). Paused for ${l.pausedSeconds}s.`;
   if (l.failed && !l.answered) return `Checks are failing: ${l.lastError}.`;
-  if (r.shorts.skipStuck) return 'A labeled Short could not be skipped automatically.';
+  if (r.shorts.skipStuck) return 'Couldn\'t auto-skip a labeled Short.';
   if (!r.cards && r.strayLinks > 5) {
     return 'Video links were found but not recognised as thumbnails.';
   }
@@ -78,17 +78,15 @@ function renderPage(r) {
   title.textContent = !open ? 'This tab' : open.kind === 'shorts' ? 'This Short' : 'This video';
 
   if (!r) {
+    $('page').hidden = false;
     main.hidden = false;
     main.textContent = 'Not running in this tab. Open YouTube, or refresh the tab if it was open before the extension was installed or updated.';
     video.hidden = warn.hidden = true;
     return;
   }
 
-  const s = r.states;
-  main.textContent = r.cards
-    ? `${r.cards} videos found · ${s.ai} labeled · ${s.ok} not labeled · ${s.pending} waiting`
-    : 'No video thumbnails found on this page.';
-  main.hidden = !r.cards && !!r.openVideo;
+  main.textContent = 'No video thumbnails found on this page.';
+  main.hidden = !!r.cards || !!r.openVideo;
 
   video.hidden = !r.openVideo;
   if (r.openVideo) video.textContent = describeOpenVideo(r.openVideo);
@@ -96,6 +94,8 @@ function renderPage(r) {
   const problem = describeProblem(r);
   warn.hidden = !problem;
   warn.textContent = problem;
+
+  $('page').hidden = main.hidden && video.hidden && warn.hidden;
 }
 
 async function refreshPage() {
