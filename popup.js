@@ -5,7 +5,6 @@ const $ = (id) => document.getElementById(id);
 const modeRadios = document.querySelectorAll('input[name="mode"]');
 
 let settings = { ...DEFAULTS };
-let lastReport = null;
 
 // ---- Settings and totals ----------------------------------------------------
 
@@ -54,14 +53,12 @@ $('clear').addEventListener('click', () => chrome.storage.local.remove('verdicts
 
 function describeOpenVideo(v) {
   const shorts = v.kind === 'shorts';
-  const text = {
+  return {
     labeled: shorts ? 'YouTube labels it as AI, so it is skipped.' : 'YouTube labels it as AI. Its thumbnail is hidden in feeds.',
     'not labeled': 'YouTube has not labeled it as AI, so it cannot be filtered.',
-    checking: 'checking…',
-    unknown: 'not checked yet.',
+    checking: 'Checking…',
+    unknown: 'Not checked yet.',
   }[v.label];
-  const what = Object.assign(document.createElement('b'), { textContent: (shorts ? 'This Short' : 'This video') + ': ' });
-  return [what, text];
 }
 
 function describeProblem(r) {
@@ -70,15 +67,15 @@ function describeProblem(r) {
   if (l.failed && !l.answered) return `Checks are failing: ${l.lastError}.`;
   if (r.shorts.skipStuck) return 'A labeled Short could not be skipped automatically.';
   if (!r.cards && r.strayLinks > 5) {
-    return 'Video links were found but not recognised as thumbnails. Copy the details and send them over.';
+    return 'Video links were found but not recognised as thumbnails.';
   }
   return '';
 }
 
 function renderPage(r) {
-  lastReport = r;
-  const main = $('page-main'), video = $('page-video'), warn = $('page-warn');
-  $('copy').hidden = !r;
+  const title = $('page-title'), main = $('page-main'), video = $('page-video'), warn = $('page-warn');
+  const open = r && r.openVideo;
+  title.textContent = !open ? 'This tab' : open.kind === 'shorts' ? 'This Short' : 'This video';
 
   if (!r) {
     main.hidden = false;
@@ -94,7 +91,7 @@ function renderPage(r) {
   main.hidden = !r.cards && !!r.openVideo;
 
   video.hidden = !r.openVideo;
-  if (r.openVideo) video.replaceChildren(...describeOpenVideo(r.openVideo));
+  if (r.openVideo) video.textContent = describeOpenVideo(r.openVideo);
 
   const problem = describeProblem(r);
   warn.hidden = !problem;
@@ -109,12 +106,6 @@ async function refreshPage() {
     renderPage(null);
   }
 }
-
-$('copy').addEventListener('click', async () => {
-  await navigator.clipboard.writeText(JSON.stringify(lastReport, null, 2));
-  $('copy').textContent = 'Copied';
-  setTimeout(() => ($('copy').textContent = 'Copy details'), 1500);
-});
 
 refreshPage();
 setInterval(refreshPage, 1000);

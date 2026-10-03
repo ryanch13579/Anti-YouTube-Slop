@@ -20,7 +20,7 @@ skips them automatically.
 - **Private**: no accounts, no analytics, no outside servers. See
   [Privacy](#privacy).
 - **Status panel**: the popup shows what the extension is doing on the current
-  tab, with a **Copy details** button for bug reports.
+  tab, including whether the open video or Short is labeled.
 
 ## Install
 
@@ -108,7 +108,7 @@ working, these are the likely fixes:
   the card element. Inspect the card and add its tag name to `outerCards` in
   the `CFG` block at the top of `content.js`.
 
-If you open an issue, please paste the popup's **Copy details** output.
+If you open an issue, please describe the page you were on and what the popup shows.
 
 ## Contributing
 
