@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Hide AI-Labeled Videos",
+  "name": "Anti-YouTube AI Slop",
   "version": "1.1.0",
   "description": "Hides videos YouTube has labeled as made with AI from feeds, search and the sidebar, and skips them in the Shorts player.",
   "permissions": ["storage"],
