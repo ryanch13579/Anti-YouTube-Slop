@@ -21,9 +21,12 @@ skips them automatically.
 - **Status panel**: the popup shows what the extension is doing on the current
   tab, including whether the open video or Short is labeled.
 
+## Demo Video
+
+
 ## Install
 
-The extension is not on the Chrome Web Store yet. You can load it from source:
+The extension is on the Chrome Web Store, but you can load it from source:
 
 1. Clone the repository, or download it as a ZIP and unzip it somewhere
    permanent:
