@@ -7,7 +7,7 @@ watch-page sidebar, channel pages and Shorts shelves. In the Shorts player it
 skips them automatically.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
-![Version](https://img.shields.io/badge/version-1.1.1-green)
+![Version](https://img.shields.io/badge/version-1.1.2-green)
 
 ## Features
 
@@ -23,7 +23,7 @@ skips them automatically.
 
 ## Demo Video
 
-https://github.com/user-attachments/assets/f0fc12ee-2e65-4cb6-a106-f847f0af9e06
+https://github.com/user-attachments/assets/72f0da9e-6c2a-4d9f-8953-27100d3670c0
 
 ## Install
 
