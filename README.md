@@ -23,7 +23,7 @@ skips them automatically.
 
 ## Demo Video
 
-[Watch Demo Video](https://github.com/ryanch13579/Anti-YouTube-Slop/blob/main/Demo%20Video/Demo%20Video.mp4)
+https://github.com/user-attachments/assets/f0fc12ee-2e65-4cb6-a106-f847f0af9e06
 
 ## Install
 
