@@ -23,6 +23,7 @@ skips them automatically.
 
 ## Demo Video
 
+https://github.com/ryanch13579/Anti-YouTube-Slop/tree/main/Demo%20Video
 
 ## Install
 
