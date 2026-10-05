@@ -7,7 +7,7 @@ watch-page sidebar, channel pages and Shorts shelves. In the Shorts player it
 skips them automatically.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
-![Version](https://img.shields.io/badge/version-1.1.1-green)
+![Version](https://img.shields.io/badge/version-1.1.2-green)
 
 ## Features
 
@@ -21,9 +21,13 @@ skips them automatically.
 - **Status panel**: the popup shows what the extension is doing on the current
   tab, including whether the open video or Short is labeled.
 
+## Demo Video
+
+https://github.com/user-attachments/assets/72f0da9e-6c2a-4d9f-8953-27100d3670c0
+
 ## Install
 
-The extension is not on the Chrome Web Store yet. You can load it from source:
+The extension is on the Chrome Web Store, but you can load it from source:
 
 1. Clone the repository, or download it as a ZIP and unzip it somewhere
    permanent:
