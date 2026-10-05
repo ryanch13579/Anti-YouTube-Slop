@@ -14,10 +14,22 @@ function renderSettings() {
   for (const r of modeRadios) r.checked = r.value === settings.mode;
 }
 
+// verdicts is { ai: "id1id2…", ok: { "<day>": "id3id4…" } }, made of
+// back-to-back 11-character video ids. Older versions stored
+// { id: [ai, checkedAt] }.
 function renderCounts(verdicts = {}) {
-  const entries = Object.values(verdicts);
-  $('total').textContent = entries.length.toLocaleString();
-  $('ai').textContent = entries.filter(([ai]) => ai).length.toLocaleString();
+  let total, ai;
+  if (typeof verdicts.ai === 'string') {
+    ai = verdicts.ai.length / 11;
+    total = ai;
+    for (const ids of Object.values(verdicts.ok || {})) total += ids.length / 11;
+  } else {
+    const entries = Object.values(verdicts);
+    total = entries.length;
+    ai = entries.filter(([labeled]) => labeled).length;
+  }
+  $('total').textContent = total.toLocaleString();
+  $('ai').textContent = ai.toLocaleString();
 }
 
 function save() {

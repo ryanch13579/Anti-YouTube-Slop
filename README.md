@@ -62,7 +62,7 @@ remembers the answer.
 | --- | --- |
 | `manifest.json` | Extension manifest (MV3). |
 | `detect.js` | Finds the label in a page's data by matching the JSON key `"howThisWasMadeSectionViewModel":{`. |
-| `content.js` | Finds video cards and checks those near the viewport, 3 at a time. Caches the answers, marks cards, and skips labeled Shorts. |
+| `content.js` | Finds video cards and checks every one as soon as it appears, 6 at a time, nearest the viewport first. Caches the answers, marks cards, and skips labeled Shorts. |
 | `content.css` | Hides or dims marked cards. |
 | `popup.html` / `popup.js` | The toolbar popup. |
 | `icons/` | Extension icons. |
@@ -79,10 +79,11 @@ labeled as made with AI.
 - YouTube page content. On `youtube.com`, the extension reads the video links
   on the page and fetches each video's YouTube page to check whether YouTube
   has labeled it as made with AI.
-- A local cache. The IDs of the videos it has checked, whether each one is
-  labeled, and when it was checked. "Labeled" results are kept for 90 days.
-  "Not labeled" results are checked again after 7 days, because YouTube can add
-  a label later.
+- A local cache. The IDs of the videos it has checked and whether each one is
+  labeled, plus the day each unlabeled one was checked. Labeled results are
+  kept for good. Unlabeled results are checked again after 7 days, because
+  YouTube can add a label later. The cache holds up to 10,000 videos (about
+  110 KB); past that, the oldest unlabeled results are dropped first.
 - Your settings. Whether the filter is on, and whether labeled videos are
   removed or dimmed.
 
@@ -104,7 +105,7 @@ advertising, and does not sell or share any data.
 
 **Your control**
 
-The Reset button in the popup clears the cache. Removing the extension deletes
+The "Clear saved results" button in the popup clears the cache. Removing the extension deletes
 everything it stored.
 
 **Contact**

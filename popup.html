@@ -1,103 +1,249 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Hide AI-Labeled Videos</title>
-<style>
-  :root {
-    color-scheme: light dark;
-    --bg: #ffffff; --fg: #16181d; --muted: #646b78; --line: #e4e6eb;
-    --panel: #f5f6f8; --accent: #c8323a; --accent-fg: #ffffff;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #16181d; --fg: #eceef2; --muted: #9aa1ad; --line: #2b2f37;
-      --panel: #1f2229; --accent: #ef5a60; --accent-fg: #16181d;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; width: 300px; padding: 16px;
-    background: var(--bg); color: var(--fg);
-    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
-  h1 { margin: 0 0 12px; font-size: 14px; font-weight: 650; letter-spacing: -0.01em; }
-  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .switch { position: relative; width: 38px; height: 22px; flex: none; }
-  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
-  .switch span {
-    position: absolute; inset: 0; border-radius: 11px; background: var(--line);
-    transition: background .15s; pointer-events: none;
-  }
-  .switch span::after {
-    content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
-    border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3);
-    transition: transform .15s;
-  }
-  .switch input:checked + span { background: var(--accent); }
-  .switch input:checked + span::after { transform: translateX(16px); }
-  .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
-  fieldset { border: 0; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
-  fieldset[disabled] { opacity: .45; }
-  legend { padding: 0; float: left; width: 100%; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
-  label.opt { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; clear: both; cursor: pointer; }
-  label.opt input { margin: 2px 0 0; accent-color: var(--accent); }
-  label.opt small { display: block; color: var(--muted); font-size: 12px; }
-  .stats {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px;
-  }
-  .stat { background: var(--panel); border-radius: 8px; padding: 10px 12px; }
-  .stat b { display: block; font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
-  .stat span { color: var(--muted); font-size: 12px; }
-  #page { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
-  #page h2 { margin: 0 0 4px; font-size: 13px; font-weight: 650; }
-  #page p { margin: 0 0 6px; }
-  #page-warn { color: var(--accent); text-align: center; }
-  footer { margin-top: 12px; }
-  footer button { width: 100%; padding: 7px 10px; }
-  button {
-    flex: none; border: 1px solid var(--line); background: transparent; color: var(--fg);
-    border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 12px; cursor: pointer;
-  }
-  button:hover { background: var(--panel); }
-</style>
-</head>
-<body>
-  <h1>Hide AI-Labeled Videos</h1>
+  <head>
+    <meta charset="utf-8" />
+    <title>Hide AI-Labeled Videos</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #16181d;
+        --muted: #646b78;
+        --line: #e4e6eb;
+        --panel: #f5f6f8;
+        --accent: #c8323a;
+        --accent-fg: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16181d;
+          --fg: #eceef2;
+          --muted: #9aa1ad;
+          --line: #2b2f37;
+          --panel: #1f2229;
+          --accent: #ef5a60;
+          --accent-fg: #16181d;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 300px;
+        padding: 16px;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          13px/1.45 system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 14px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .switch {
+        position: relative;
+        width: 38px;
+        height: 22px;
+        flex: none;
+      }
+      .switch input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        margin: 0;
+        cursor: pointer;
+      }
+      .switch span {
+        position: absolute;
+        inset: 0;
+        border-radius: 11px;
+        background: var(--line);
+        transition: background 0.15s;
+        pointer-events: none;
+      }
+      .switch span::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transition: transform 0.15s;
+      }
+      .switch input:checked + span {
+        background: var(--accent);
+      }
+      .switch input:checked + span::after {
+        transform: translateX(16px);
+      }
+      .switch input:focus-visible + span {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      fieldset {
+        border: 0;
+        margin: 14px 0 0;
+        padding: 12px 0 0;
+        border-top: 1px solid var(--line);
+      }
+      fieldset[disabled] {
+        opacity: 0.45;
+      }
+      legend {
+        padding: 0;
+        float: left;
+        width: 100%;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      label.opt {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        padding: 4px 0;
+        clear: both;
+        cursor: pointer;
+      }
+      label.opt input {
+        margin: 2px 0 0;
+        accent-color: var(--accent);
+      }
+      label.opt small {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .stat {
+        background: var(--panel);
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .stat b {
+        display: block;
+        font-size: 20px;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      #page {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+      }
+      #page h2 {
+        margin: 0 0 4px;
+        font-size: 13px;
+        font-weight: 650;
+      }
+      #page p {
+        margin: 0 0 6px;
+      }
+      #page-warn {
+        color: var(--accent);
+        text-align: center;
+      }
+      footer {
+        margin-top: 12px;
+      }
+      footer button {
+        width: 100%;
+        padding: 7px 10px;
+      }
+      footer small {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+      button {
+        flex: none;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--fg);
+        border-radius: 6px;
+        padding: 5px 10px;
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--panel);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hide AI-Labeled Videos</h1>
 
-  <div class="row">
-    <label for="enabled">Filter YouTube</label>
-    <div class="switch"><input type="checkbox" id="enabled"><span></span></div>
-  </div>
+    <div class="row">
+      <label for="enabled">Filter YouTube</label>
+      <div class="switch">
+        <input type="checkbox" id="enabled" /><span></span>
+      </div>
+    </div>
 
-  <fieldset id="modes">
-    <legend>What to do with labeled videos</legend>
-    <label class="opt">
-      <input type="radio" name="mode" value="hide">
-      <div>Remove them</div>
-    </label>
-    <label class="opt">
-      <input type="radio" name="mode" value="dim">
-      <div>Dim and tag them<small>Use this to see what the filter catches.</small></div>
-    </label>
-  </fieldset>
+    <fieldset id="modes">
+      <legend>What to do with labeled videos</legend>
+      <label class="opt">
+        <input type="radio" name="mode" value="hide" />
+        <div>Remove them</div>
+      </label>
+      <label class="opt">
+        <input type="radio" name="mode" value="dim" />
+        <div>
+          Dim and tag them<small
+            >Use this to see what the filter catches.</small
+          >
+        </div>
+      </label>
+    </fieldset>
 
-  <div class="stats">
-    <div class="stat"><b id="ai">0</b><span>labeled videos found</span></div>
-    <div class="stat"><b id="total">0</b><span>videos checked</span></div>
-  </div>
+    <div class="stats">
+      <div class="stat"><b id="ai">0</b><span>labeled videos found</span></div>
+      <div class="stat"><b id="total">0</b><span>videos checked</span></div>
+    </div>
 
-  <section id="page">
-    <h2 id="page-title">This tab</h2>
-    <p id="page-video" hidden></p>
-    <p id="page-main">Checking…</p>
-    <p id="page-warn" hidden></p>
-  </section>
+    <section id="page">
+      <h2 id="page-title">This tab</h2>
+      <p id="page-video" hidden></p>
+      <p id="page-main">Checking…</p>
+      <p id="page-warn" hidden></p>
+    </section>
 
-  <footer>
-    <button id="clear" title="Forget saved results and check every video again">Reset</button>
-  </footer>
+    <footer>
+      <button id="clear">Clear saved results</button>
+      <small id="clear-note">
+        Frees the extension's storage.<br>
+        Every video will be checked again.
+      </small>
+    </footer>
 
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>

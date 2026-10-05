@@ -29,12 +29,11 @@
     ].join(","),
     shortsNext:
       '#navigation-button-down button, button[aria-label="Next video"]',
-    maxConcurrent: 3,
-    lookAhead: "800px 0px", // start checking this far outside the viewport
+    maxConcurrent: 6, // each lookup takes ~1s, mostly YouTube's server time
+    lookAhead: "800px 0px", // cards this far outside the viewport are checked first
     scanDelay: 200,
-    aiTtl: 90 * DAY,
-    cleanTtl: 7 * DAY, // labels can be added later, so re-check weekly
-    maxCached: 8000,
+    recheckDays: 7, // unlabeled videos only; YouTube can add a label later
+    maxCached: 10000, // 11 bytes each, so storage stays around 110 KB
     maxAttempts: 3,
     skipDelay: 1200,
     maxSkipTries: 3,
@@ -50,12 +49,13 @@
   let settings = { ...DEFAULTS };
   let alive = true; // false once the extension is reloaded or removed
 
-  const verdicts = new Map(); // videoId -> { ai, t }
+  const verdicts = new Map(); // videoId -> true (labeled) | false, oldest first
   const paths = new Map(); // videoId -> same-origin path to fetch
   const attempts = new Map(); // videoId -> failed lookups
   const visible = new WeakSet(); // cards near the viewport
   let scannedHref = new WeakMap(); // link -> href it had when last scanned
-  const queue = []; // videoIds waiting; newest is taken first
+  const queue = []; // videoIds near the viewport; newest is taken first
+  const backlog = []; // videoIds further away; top of the page is taken first
   const queued = new Set(); // waiting or in flight
   const wanted = new Set(); // ids to look up without a card (the open video)
   const stats = {
@@ -104,25 +104,60 @@
 
   // ---- Verdict cache --------------------------------------------------------
 
-  const isFresh = (v) => Date.now() - v.t < (v.ai ? CFG.aiTtl : CFG.cleanTtl);
-  const stateOf = (v) => (v.ai ? "ai" : "ok");
+  // Labeled answers are kept for good. Unlabeled ones are checked again after
+  // CFG.recheckDays, since YouTube can add the label later. In memory each
+  // video maps to true (labeled) or the day it was found unlabeled. Storage
+  // holds back-to-back 11-character ids, oldest first:
+  //   { ai: "id1id2…", ok: { "<day>": "id3id4…", … } }
+  const today = () => Math.floor(Date.now() / DAY);
+  const isFresh = (v) => v === true || today() - v < CFG.recheckDays;
+  const stateOf = (ai) => (ai ? "ai" : "ok");
 
+  /** true (labeled), false (not labeled), or undefined (unchecked or due a re-check). */
   function known(id) {
     const v = verdicts.get(id);
-    return v && isFresh(v) ? v : null;
+    return v !== undefined && isFresh(v) ? v === true : undefined;
+  }
+
+  function* idsIn(ids) {
+    for (let i = 0; i + 11 <= ids.length; i += 11) yield ids.slice(i, i + 11);
+  }
+
+  /** Stored verdicts as [id, value] pairs, oldest first. */
+  function decode(stored) {
+    if (!stored) return [];
+    if (typeof stored.ai === "string") {
+      const out = [];
+      // Integer keys come out in ascending order, so oldest day first.
+      if (stored.ok && typeof stored.ok === "object")
+        for (const [day, ids] of Object.entries(stored.ok))
+          for (const id of idsIn(ids)) out.push([id, +day]);
+      for (const id of idsIn(stored.ai)) out.push([id, true]);
+      return out;
+    }
+    // Format used up to 1.1.2: { id: [ai, checkedAt] }
+    return Object.entries(stored)
+      .filter(([, e]) => Array.isArray(e))
+      .sort((a, b) => a[1][1] - b[1][1])
+      .map(([id, [ai, t]]) => [id, ai ? true : Math.floor(t / DAY)]);
+  }
+
+  // A label beats no label, and a later check beats an earlier one.
+  const isNewer = (a, b) =>
+    b === undefined || (a !== b && (a === true || (b !== true && a > b)));
+
+  function remember(id, v) {
+    verdicts.delete(id); // re-insert so the map stays oldest first
+    verdicts.set(id, v);
   }
 
   /** Returns how many verdicts were new or newer than ours. */
   function merge(stored) {
     let changed = 0;
-    for (const [id, entry] of Object.entries(stored || {})) {
-      if (!Array.isArray(entry)) continue;
-      const [ai, t] = entry;
-      const cur = verdicts.get(id);
-      if (!cur || cur.t < t) {
-        verdicts.set(id, { ai: !!ai, t });
-        changed++;
-      }
+    for (const [id, v] of decode(stored)) {
+      if (!isNewer(v, verdicts.get(id))) continue;
+      remember(id, v);
+      changed++;
     }
     return changed;
   }
@@ -134,13 +169,26 @@
   function saveNow() {
     clearTimeout(saveTimer);
     saveTimer = 0;
-    let newest = [...verdicts].filter(([, v]) => isFresh(v));
-    if (newest.length > CFG.maxCached)
-      newest = newest.sort((a, b) => b[1].t - a[1].t).slice(0, CFG.maxCached);
-    const out = Object.fromEntries(
-      newest.map(([id, v]) => [id, [v.ai ? 1 : 0, v.t]]),
-    );
-    safeChrome(() => chrome.storage.local.set({ verdicts: out }));
+    // Unlabeled answers due a re-check aren't worth keeping. Over the cap,
+    // forget the oldest unlabeled ones next, since losing one only costs a
+    // re-check, then the oldest labeled ones.
+    for (const [id, v] of verdicts) if (!isFresh(v)) verdicts.delete(id);
+    let excess = verdicts.size - CFG.maxCached;
+    for (const labeled of [false, true]) {
+      for (const [id, v] of verdicts) {
+        if (excess <= 0) break;
+        if ((v === true) !== labeled) continue;
+        verdicts.delete(id);
+        excess--;
+      }
+    }
+    let ai = "";
+    const ok = {};
+    for (const [id, v] of verdicts) {
+      if (v === true) ai += id;
+      else ok[v] = (ok[v] || "") + id;
+    }
+    safeChrome(() => chrome.storage.local.set({ verdicts: { ai, ok } }));
   }
 
   // ---- Video URLs -----------------------------------------------------------
@@ -189,7 +237,7 @@
           continue;
         }
         visible.add(card);
-        if (card.dataset.aif === "pending") enqueue(card.dataset.aifId);
+        if (card.dataset.aif === "pending") enqueue(card.dataset.aifId, true);
       }
     },
     { rootMargin: CFG.lookAhead },
@@ -228,13 +276,13 @@
 
   function resolve(card, id) {
     const v = known(id);
-    card.dataset.aif = v ? stateOf(v) : "pending";
-    if (!v && visible.has(card)) enqueue(id);
+    card.dataset.aif = v === undefined ? "pending" : stateOf(v);
+    if (v === undefined) enqueue(id, visible.has(card));
   }
 
   function paint(id) {
-    const v = verdicts.get(id);
-    if (!v) return;
+    const v = known(id);
+    if (v === undefined) return;
     for (const card of document.querySelectorAll(`[data-aif-id="${id}"]`))
       card.dataset.aif = stateOf(v);
   }
@@ -256,14 +304,14 @@
     const cur = openVideo();
     if (!cur || !settings.enabled) return banner(null);
     const v = known(cur.id);
-    if (!v) {
+    if (v === undefined) {
       banner(null);
       rememberPath(cur);
       wanted.add(cur.id);
-      enqueue(cur.id);
+      enqueue(cur.id, true);
       return;
     }
-    if (cur.kind !== "shorts" || !v.ai) return banner(null);
+    if (cur.kind !== "shorts" || !v) return banner(null);
     if (settings.mode === "dim")
       return banner("AI-labeled Short – would be skipped");
     skipShort(cur.id);
@@ -319,24 +367,36 @@
 
   // ---- Looking videos up ----------------------------------------------------
 
-  function enqueue(id) {
+  // Every card is looked up as soon as it appears, so most are answered
+  // before they scroll into view. Cards near the viewport (soon) go in
+  // `queue` and are taken newest first; the rest wait in `backlog` and are
+  // taken top of the page first, whenever nothing nearer is waiting.
+  function enqueue(id, soon) {
     if (!id) return;
     if (queued.has(id)) {
-      // Already waiting: move the open video to the front.
+      if (!soon) return;
+      // Already waiting: move it up once it nears the viewport, and move
+      // the open video to the front.
+      const b = backlog.indexOf(id);
+      if (b !== -1) {
+        backlog.splice(b, 1);
+        queue.push(id);
+        return;
+      }
       const at = wanted.has(id) ? queue.indexOf(id) : -1;
       if (at !== -1) queue.push(queue.splice(at, 1)[0]);
       return;
     }
     if ((attempts.get(id) || 0) >= CFG.maxAttempts) return;
     queued.add(id);
-    queue.push(id);
+    (soon ? queue : backlog).push(id);
     pump();
   }
 
   function pump() {
     if (!settings.enabled || !alive || Date.now() < pausedUntil) return;
-    while (active < CFG.maxConcurrent && queue.length) {
-      const id = queue.pop();
+    while (active < CFG.maxConcurrent && (queue.length || backlog.length)) {
+      const id = queue.length ? queue.pop() : backlog.shift();
       const stillNeeded =
         wanted.has(id) ||
         document.querySelector(`[data-aif-id="${id}"][data-aif="pending"]`);
@@ -385,7 +445,7 @@
       stats.answered++;
       attempts.delete(id);
       paths.delete(id);
-      verdicts.set(id, { ai: verdict, t: Date.now() });
+      remember(id, verdict || today());
       paint(id);
       scheduleSave();
       checkOpenVideo();
@@ -407,7 +467,7 @@
 
   function retryPending() {
     for (const card of pendingCards()) {
-      if (visible.has(card)) enqueue(card.dataset.aifId);
+      enqueue(card.dataset.aifId, visible.has(card));
     }
     checkOpenVideo();
     pump();
@@ -431,13 +491,14 @@
     const cur = openVideo();
     if (!cur) return null;
     const v = known(cur.id);
-    const label = v
-      ? v.ai
-        ? "labeled"
-        : "not labeled"
-      : queued.has(cur.id)
-        ? "checking"
-        : "unknown";
+    const label =
+      v === undefined
+        ? queued.has(cur.id)
+          ? "checking"
+          : "unknown"
+        : v
+          ? "labeled"
+          : "not labeled";
     return { kind: cur.kind, id: cur.id, label };
   }
 
@@ -487,7 +548,7 @@
         failed: stats.failed,
         lastError: stats.lastError,
         running: active,
-        waiting: queue.length,
+        waiting: queue.length + backlog.length,
         pausedSeconds: Math.max(
           0,
           Math.round((pausedUntil - Date.now()) / 1000),
@@ -524,7 +585,7 @@
         if (merge(changes.verdicts.newValue))
           for (const card of pendingCards()) resolve(card, card.dataset.aifId);
       } else {
-        // "Reset" was pressed in the popup.
+        // "Clear saved results" was pressed in the popup.
         verdicts.clear();
         attempts.clear();
         resetCards();
@@ -537,8 +598,13 @@
     chrome.storage.local.get(["settings", "verdicts", "rules"]).then((got) => {
       settings = { ...DEFAULTS, ...(got.settings || {}) };
       // Answers saved under older detection rules are thrown away, not trusted.
-      if (got.rules === RULES) merge(got.verdicts);
-      else chrome.storage.local.set({ rules: RULES, verdicts: {} });
+      if (got.rules === RULES) {
+        merge(got.verdicts);
+        // Rewrite answers saved in the old, larger format.
+        if (got.verdicts && typeof got.verdicts.ai !== "string") saveNow();
+      } else {
+        chrome.storage.local.set({ rules: RULES, verdicts: { ai: "", ok: {} } });
+      }
       applyMode();
       scan();
     }),
@@ -553,9 +619,27 @@
     alive = false;
   }
 
+  // Only inserted elements and href changes can bring in video links. The
+  // player rewrites its time display and captions many times a second while
+  // a video plays, so ignore text-only changes and anything inside it.
+  function onMutations(records) {
+    if (scanTimer) return;
+    for (const r of records) {
+      if (r.type === "attributes") return scheduleScan();
+      if (!hasElement(r.addedNodes)) continue;
+      if (r.target.closest?.(".html5-video-player")) continue;
+      return scheduleScan();
+    }
+  }
+
+  function hasElement(nodes) {
+    for (const n of nodes) if (n.nodeType === 1) return true;
+    return false;
+  }
+
   // YouTube is a single-page app with infinite scroll: watch for new cards and
   // for recycled cards whose links change.
-  new MutationObserver(scheduleScan).observe(document, {
+  new MutationObserver(onMutations).observe(document, {
     childList: true,
     subtree: true,
     attributes: true,
