@@ -3,36 +3,33 @@
 A Chrome extension that hides YouTube videos labeled **"Made with AI"**.
 
 It removes them from the home feed, subscriptions, search results, the
-watch-page sidebar, channel pages and Shorts shelves. In the Shorts player it
-skips them automatically.
+watch-page sidebar, channel pages and Shorts shelves, and skips them in the
+Shorts player.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
-![Version](https://img.shields.io/badge/version-1.1.2-green)
-
-## Features
-
-- **Hide or dim**: remove labeled videos completely, or keep them visible with
-  a red "AI-labeled" tag so you can see what the filter catches.
-- **Shorts skipping**: labeled Shorts are skipped in the Shorts player.
-- **Works in any language**: detection uses YouTube's page data, not the
-  label's visible text.
-- **Private**: no accounts, no analytics, no outside servers. See
-  [Privacy](#privacy).
-- **Status panel**: the popup shows what the extension is doing on the current
-  tab, including whether the open video or Short is labeled.
-
-## Demo Video
+![Version](https://img.shields.io/badge/version-1.1.4-green)
 
 https://github.com/user-attachments/assets/72f0da9e-6c2a-4d9f-8953-27100d3670c0
 
+## Features
+
+- **Hide or dim**: remove labeled videos, or keep them visible with a red
+  "AI-labeled" tag so you can see what the filter catches.
+- **Shorts skipping**: labeled Shorts are skipped automatically.
+- **Fast**: thumbnails are checked as soon as they load, so most answers are
+  ready before you scroll to them.
+- **Any language**: detection uses YouTube's page data, not the label's text.
+- **Private**: no accounts, no analytics, no outside servers. See
+  [Privacy](#privacy).
+
 ## Install
 
-The extension is on the Chrome Web Store, but you can load it from source:
+Install it from the Chrome Web Store, or load it from source:
 
 1. Clone the repository, or download it as a ZIP and unzip it somewhere
    permanent:
    ```sh
-   git clone https://github.com/<your-username>/Anti-AI-Label-Video.git
+   git clone https://github.com/ryanch13579/Anti-YouTube-Slop.git
    ```
 2. Open `chrome://extensions` and turn on **Developer mode** (top right).
 3. Click **Load unpacked** and choose the project folder.
@@ -40,117 +37,109 @@ The extension is on the Chrome Web Store, but you can load it from source:
 
 It should also work in other Chromium browsers (Edge, Brave, Opera, Vivaldi).
 
-### Updating
-
-Run `git pull` (or replace the files), click the reload arrow on the
-extension's card in `chrome://extensions`, then refresh your YouTube tabs.
+To update, run `git pull`, click the reload arrow on the extension's card in
+`chrome://extensions`, then refresh your YouTube tabs.
 
 ## Usage
 
 Click the toolbar icon to:
 
-- switch the filter on or off
+- turn the filter on or off
 - choose **Hide** or **Dim and tag them**
-- see how many thumbnails were found and how many are labeled on this tab
-- check whether the open video or Short has YouTube's label
-- clear the cached results
+- see how many videos have been checked and how many were labeled
+- see whether the open video or Short has YouTube's label
+- see warnings, such as YouTube refusing checks
+- clear the cache with **Clear saved results**
 
 ## How it works
 
-YouTube doesn't put the AI label on feed thumbnails. The label only appears on
-each video's own page. So for every video card near the screen, the extension
-fetches that video's page in the background, looks for the label, and
-remembers the answer.
+YouTube doesn't show the AI label on thumbnails, only on each video's own
+page. So for each video card, the extension fetches that video's page in the
+background, looks for the label and caches the answer.
+
+Up to 6 checks run at once. Cards near the screen go first, then the rest of
+the page from top to bottom. Labeled results are kept permanently; unlabeled
+ones are re-checked after 7 days, since YouTube can add a label later.
 
 | File | Role |
 | --- | --- |
 | `manifest.json` | Extension manifest (MV3). |
 | `detect.js` | Finds the label in a page's data by matching the JSON key `"howThisWasMadeSectionViewModel":{`. |
-| `content.js` | Finds video cards and checks every one as soon as it appears, 6 at a time, nearest the viewport first. Caches the answers, marks cards, and skips labeled Shorts. |
+| `content.js` | Finds video cards, queues and caches checks, marks cards and skips labeled Shorts. |
 | `content.css` | Hides or dims marked cards. |
 | `popup.html` / `popup.js` | The toolbar popup. |
 | `icons/` | Extension icons. |
-
-## Privacy
-
-*Privacy policy, last updated 4 October 2026.*
-
-Hide AI-Labeled Videos is a browser extension that hides videos YouTube has
-labeled as made with AI.
-
-**What the extension handles**
-
-- YouTube page content. On `youtube.com`, the extension reads the video links
-  on the page and fetches each video's YouTube page to check whether YouTube
-  has labeled it as made with AI.
-- A local cache. The IDs of the videos it has checked and whether each one is
-  labeled, plus the day each unlabeled one was checked. Labeled results are
-  kept for good. Unlabeled results are checked again after 7 days, because
-  YouTube can add a label later. The cache holds up to 10,000 videos (about
-  110 KB); past that, the oldest unlabeled results are dropped first.
-- Your settings. Whether the filter is on, and whether labeled videos are
-  removed or dimmed.
-
-**Where it is stored**
-
-All of this is stored only in your browser (`chrome.storage.local`). It is
-never sent to the developer or to any third party. The only network requests
-the extension makes are to `youtube.com`.
-
-**Permissions**
-
-The only permission requested is `storage`. Content scripts run only on
-`https://www.youtube.com/*`.
-
-**What is not collected**
-
-The extension does not collect personal information, does not use analytics or
-advertising, and does not sell or share any data.
-
-**Your control**
-
-The "Clear saved results" button in the popup clears the cache. Removing the extension deletes
-everything it stored.
-
-**Contact**
-
-Questions about this policy: open an issue on this repository.
 
 ## Limitations
 
 - **Only YouTube's own label counts.** AI voiceovers, scripts and stylized or
   animated AI content are often unlabeled, so they aren't hidden.
-- **Brief flash on first check.** A video shows until its first check finishes.
-  After that the result is cached and the video is hidden right away.
-- **Background requests.** A fresh feed checks many videos at once. If YouTube
-  answers "too many requests", the extension pauses and tries again later.
-  Videos that haven't been checked stay visible.
-- **Shorts.** The first time a labeled Short comes up, it plays for a moment
-  before the check finishes. Then it is skipped.
-- **Direct links still play.** Opening a labeled long-form video directly still
-  plays it. Only its thumbnails are hidden.
+- **First check can flash.** A video stays visible until its first check
+  finishes. Most finish before the card scrolls into view, but on a fast
+  scroll you may see one briefly. Cached videos are hidden immediately.
+- **Rate limits.** If YouTube answers "too many requests", the extension
+  pauses and retries later. Unchecked videos stay visible meanwhile.
+- **Shorts.** A labeled Short may play for a moment the first time it comes
+  up, before it is skipped.
+- **Direct links still play.** A labeled long-form video opened directly still
+  plays. Only its thumbnails are hidden.
 - **Playlists and mixes** are not filtered.
 
 ## Troubleshooting
 
 YouTube changes its page structure from time to time. If the extension stops
-working, these are the likely fixes:
+working:
 
-- **Nothing is flagged.** YouTube has probably renamed the label's key. Open a
+- **Nothing is flagged.** The label's key has probably been renamed. Open a
   labeled video, view the page source and search for "Made with AI". Put the
   key that contains it in `MARKER` at the top of `detect.js`.
-- **Labeled Shorts aren't skipped.** YouTube has probably changed the "next"
-  button. Inspect it in the Shorts player and update `shortsNext` in the `CFG`
-  block at the top of `content.js`.
-- **Flagged videos aren't hidden on some page.** YouTube has probably changed
-  the card element. Inspect the card and add its tag name to `outerCards` in
-  the `CFG` block at the top of `content.js`.
+- **Labeled Shorts aren't skipped.** The "next" button has probably changed.
+  Inspect it in the Shorts player and update `shortsNext` in the `CFG` block
+  at the top of `content.js`.
+- **Flagged videos aren't hidden on some page.** The card element has probably
+  changed. Inspect the card and add its tag name to `outerCards` in `CFG`.
 
-If you open an issue, please describe the page you were on and what the popup shows.
+When opening an issue, describe the page you were on and what the popup shows.
+
+## Privacy
+
+*Last updated 4 October 2026.*
+
+**What the extension handles**
+
+- **YouTube page content.** On `youtube.com`, it reads the video links on the
+  page and fetches each video's page to check for YouTube's AI label.
+- **A local cache.** The IDs of checked videos, whether each is labeled, and
+  the day each unlabeled one was checked. It holds up to 10,000 videos (about
+  110 KB); past that, the oldest unlabeled results are dropped first.
+- **Your settings.** Whether the filter is on, and whether labeled videos are
+  hidden or dimmed.
+
+**Where it is stored**
+
+Only in your browser (`chrome.storage.local`). Nothing is sent to the
+developer or any third party. The only network requests go to `youtube.com`.
+
+**Permissions**
+
+Only `storage`. Content scripts run only on `https://www.youtube.com/*`.
+
+**What is not collected**
+
+No personal information, analytics or advertising. No data is sold or shared.
+
+**Your control**
+
+**Clear saved results** in the popup clears the cache. Removing the extension
+deletes everything it stored.
+
+**Contact**
+
+Open an issue on this repository.
 
 ## Contributing
 
-Issues and pull requests are welcome. There is no build step. Edit the files,
+Issues and pull requests are welcome. There is no build step: edit the files,
 reload the extension in `chrome://extensions` and refresh YouTube to test.
 
 ## Disclaimer
