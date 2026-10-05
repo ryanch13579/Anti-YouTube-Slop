@@ -9,7 +9,7 @@ Shorts player.
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
 ![Version](https://img.shields.io/badge/version-1.1.4-green)
 
-https://github.com/user-attachments/assets/72f0da9e-6c2a-4d9f-8953-27100d3670c0
+https://github.com/user-attachments/assets/95990226-7bad-4373-8d9f-f538806d20d3
 
 ## Features
 
